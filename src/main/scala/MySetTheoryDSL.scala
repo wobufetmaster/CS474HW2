@@ -3,17 +3,19 @@ import MySetTheoryDSL.setExp.{Insert, Variable}
 import scala.collection.mutable
 
 object MySetTheoryDSL:
-  type BasicType = Int
-  private val set_rep = collection.mutable.Set()
-  private val bindingScoping: Map[String, setExp] = Map("set1"->setExp.Value(5))
-  private val scope_map: Map[(String,String), Set[Any]] = Map(("set1","scope1")->Set())
+  type BasicType = Any
+
+  private val macro_map: collection.mutable.Map[String, setExp] = collection.mutable.Map("set1"->setExp.Value(5))
+  private val scope_map: collection.mutable.Map[(String,Option[String]), Set[Any]] = collection.mutable.Map(("set1",None)->Set())
   private val current_scope: mutable.Stack[String] = new mutable.Stack[String]()
+
   enum setExp:
     case Value(input: BasicType)
     case Variable(name: String)
     case Macro(name: String)
+    case Create_Macro(name: String, op2: setExp)
     case Scope(name: String, op2:setExp)
-    case Assign(name: Variable, op2: setExp)
+    case Assign(name: Variable, op2: setExp*)
     case Insert(op: setExp*)
     case Delete(name: Variable)
     case Union(op1: setExp, op2: setExp)
@@ -25,21 +27,23 @@ object MySetTheoryDSL:
     def eval(): Set[Any] = { //Walks through the AST and returns a set.
       this match {
         case Value(v) => Set(v)
-        case Variable(name) => bindingScoping(name).eval()
-        case Macro(a) => Set()
+        case Variable(name) => scope_map(name,current_scope.headOption)
+        case Macro(a) => macro_map(a).eval()
+        case Create_Macro(a,b) =>
+          macro_map.update(a,b)
+          Set()
         case Scope(a,b) =>
           current_scope.push(a) //Push current scope onto stack
           val temp = b.eval() //Evaluate rhs
           current_scope.pop() //Current scope is over - go back to previous scope
           temp //Return the evaluated value
-        case Assign(name, set) =>
-          name match {
-            case Variable(s) =>
-              scope_map.updated((s,"scope1"),set.eval())
-          }
+        case Assign(Variable(name), set*) =>
+          scope_map.update((name,current_scope.headOption),set.foldLeft(Set())((v1,v2) => v1 | v2.eval()))
           Set()
         case Insert(to_insert*) => to_insert.foldLeft(Set())((v1,v2) => v1 | v2.eval())
-        case Delete(name) => Set()
+        case Delete(Variable(name)) =>
+          scope_map.remove(name,current_scope.headOption)
+          Set()
         case Union(op1, op2) => op1.eval() + op2.eval()
         case Intersection(op1, op2) => op1.eval() & op2.eval()
         case Difference(op1, op2) => op1.eval() -- op2.eval()
@@ -47,29 +51,19 @@ object MySetTheoryDSL:
         case Product(op1, op2) => op1.eval() + op2.eval()
 
 
-        case default => Set()
+        //case default => Set()
       }
     }
 
-  def Check(set_name: String, set_val: setExp.Value): Boolean = {
-    println(set_val.eval())
-    println(bindingScoping(set_name).eval())
-    bindingScoping(set_name).eval().subsetOf(set_val.eval())
+  def Check(set_name: String, set_val: setExp.Value): Boolean = { //All of the other cases return a set, except for check, which returns a boolean.
+    //println(set_val.eval())
+    scope_map(set_name,current_scope.headOption).subsetOf(set_val.eval())
   }
 
   @main def runSetExp(): Unit =
     import setExp.*
 
-    //println("Hello world!")
-    println(Insert(Value(2),Value(3),Value(5),Value(7)).eval())
-    //println(Assign(Variable("someSetName"), Insert(Value(2),Value(3),Value(5),Value(7))).eval())
 
-    //println(Insert(Variable("set1"),7,9).eval())
-    println(Check("set1",Value(5)))
-    //Scope("scopename", Scope("othername", Assign(Variable("someSetName"), Insert(Variable("var"), Value(1)), Value("somestring"))))
+    Scope("scopename", Scope("othername", Assign(Variable("someSetName"), Insert(Variable("var"), Value(1))))).eval()
 
-//println(Assign(Variable("ass"),Scope()))
-    //val expression = Assign(Variable("someSetName"), Insert(Variable("var"), Value(1)), Value(1))
-    //val expression2 = Assign(SetIdentity("someSetName"),Seq( Variable("var"), Value(1), Value(1)))
-//val firstExpression = Sub(Add(Add(Value(2), Value(3)),Var("Adan")), Var("x")).eval
-    //println(firstExpression)
+
