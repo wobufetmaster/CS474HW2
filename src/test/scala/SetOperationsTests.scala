@@ -2,7 +2,7 @@ import MySetTheoryDSL.*
 import setExp.*
 import org.scalatest.funsuite.AnyFunSuite
 
-class SetOperationsTest extends AnyFunSuite {
+class SetOperationsTests extends AnyFunSuite {
   test("Product Test") {
 
     println("Running test 1!")

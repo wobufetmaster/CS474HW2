@@ -80,6 +80,6 @@ object MySetTheoryDSL:
     import setExp.*
 
 
-    //Scope("scopename", Scope("othername", Assign(Variable("someSetName"), Insert(Variable("var"), Value(1))))).eval()
+    
 
 

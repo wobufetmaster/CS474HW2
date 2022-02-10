@@ -2,7 +2,7 @@ import MySetTheoryDSL.*
 import setExp.*
 import org.scalatest.funsuite.AnyFunSuite
 
-class BasicsTest extends AnyFunSuite {
+class BasicsTests extends AnyFunSuite {
   test("Assign Test") {
     println("Running test 1!")
     Assign(Variable("someSetName"), Value(1), Value("somestring"), Value(0x0f)).eval()
