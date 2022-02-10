@@ -1,9 +1,9 @@
 import MySetTheoryDSL.*
+import setExp.*
 import org.scalatest.funsuite.AnyFunSuite
 
 class BasicsTest extends AnyFunSuite {
   test("Assign Test") {
-    import setExp.*
     println("Running test 1!")
     Assign(Variable("someSetName"), Value(1), Value("somestring"), Value(0x0f)).eval()
 
@@ -25,44 +25,45 @@ class BasicsTest extends AnyFunSuite {
 
   }
   test("Insert Test") {
-    import setExp.*
     println("Running test 2!")
-    Assign(Variable("someSetName"), Insert(Value(1)), Value("somestring")).eval()
-    assert(Check("someSetName", Value(1)))
+    Assign(Variable("someSetName"), Insert(Value(1), Value("somestring"))).eval()
+    assert(Check("someSetName", Insert(Value(1),Value("somestring"))))
 
+    Assign(Variable("someOtherSetName"), Insert(Value(3.14), Insert(Insert(Insert(Value("nestedval")))))).eval()
+    //println(Variable("someOtherSetName").eval())
+    assert(Check("someOtherSetName", Insert(Value(3.14), Insert(Value("nestedval")))))
   }
-  test("Delete Test") {
-    import setExp.*
-    //val firstExpression = Sub(Add(Add(Value(2), Value(3)),Var("Adan")), Var("x")).eval
-    println("Running test 2!")
-    Assign(Variable("someSetName"), Insert(Value(1)), Value("somestring")).eval()
-    assert(Check("someSetName", Value(1)))
 
-  }
-  test("Value Test") {
-    import setExp.*
-    //val firstExpression = Sub(Add(Add(Value(2), Value(3)),Var("Adan")), Var("x")).eval
+  test("Nested Insert Test") {
     println("Running test 3!")
-    Assign(Variable("someSetName"), Insert(Value(1)), Value("somestring")).eval()
-    assert(Check("someSetName", Value(1)))
+    Assign(Variable("someSetName"), NestedInsert(Value(1), Value("somestring"))).eval()
+    assert(Check("someSetName", Insert(NestedInsert(Value(1)),NestedInsert(Value("somestring")))))
 
   }
-  test("Variable Test") {
-    import setExp.*
-    //val firstExpression = Sub(Add(Add(Value(2), Value(3)),Var("Adan")), Var("x")).eval
+
+  test("Delete Test") {
+
     println("Running test 4!")
+    Assign(Variable("someSetName"), Insert(Value(9999), Value("somestring"))).eval()
+    assert(Check("someSetName", Value(9999)))
+
+    Delete(Variable("someSetName")).eval()
+    assertThrows[NoSuchElementException](Check("someSetName", Value(9999)))
+
+  }
+
+  test("Variable Test") {
+
+    println("Running test 5!")
     Assign(Variable("someSetName"), Insert(Value(1)), Value("3"), Value(5)).eval()
-    Scope("scopename", Scope("othername", Assign(Variable("someSetName"), Insert(Value(2), Value(4)), Value("someotherstring")))).eval()
 
-    assert(Check("someSetName", Value(1)))
-    assert(Check("someSetName", Value("3")))
-    assert(Check("someSetName", Value(5)))
-
-    assert(Check("someSetName", Value(2),Some("othername")))
-    assert(Check("someSetName", Value(4),Some("othername")))
-    assert(Check("someSetName", Value("someotherstring"),Some("othername")))
+    Assign(Variable("myOtherSet"), Insert(Variable("someSetName"),Value(777777))).eval()
 
 
+    Assign(Variable("myOtherSet"), Insert(Variable("myOtherSet"),Value(777777))).eval() //Note that inserting the set into itself should do nothing.
+    assert(Check("someSetName", Insert(Value(1), Value("3"), Value(5))))
+    println(Variable("myOtherSet").eval())
+    assert(Check("myOtherSet", Insert(Value(1), Value("3"), Value(5), Value(777777))))
 
   }
 

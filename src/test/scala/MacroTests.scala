@@ -2,7 +2,7 @@ import MySetTheoryDSL.*
 import org.scalatest.funsuite.AnyFunSuite
 
 class MacroTests extends AnyFunSuite {
-  test("Basics Test") {
+  test("Basic Macro Test") {
     import setExp.*
     //val firstExpression = Sub(Add(Add(Value(2), Value(3)),Var("Adan")), Var("x")).eval
     println("Running test 1!")

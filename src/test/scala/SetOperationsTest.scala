@@ -1,57 +1,45 @@
 import MySetTheoryDSL.*
+import setExp.*
 import org.scalatest.funsuite.AnyFunSuite
 
 class SetOperationsTest extends AnyFunSuite {
-  test("Basics Test") {
-    import setExp.*
-    //val firstExpression = Sub(Add(Add(Value(2), Value(3)),Var("Adan")), Var("x")).eval
+  test("Product Test") {
+
     println("Running test 1!")
-    Assign(Variable("someSetName"), Insert(Value(1)), Value("somestring")).eval()
-    assert(Check("someSetName", Value(1)))
-    assert(Check("someSetName", Value("somestring")))
+    Assign(Variable("ProductSet"),Product(Insert(Value(1),Value(3)),Insert(Value(2),Value(4)))).eval()
 
+    Check("ProductSet", NestedInsert(
+      Insert(Value(1),Value(2)),
+      Insert(Value(1),Value(4)),
+      Insert(Value(3),Value(2)),
+      Insert(Value(3),Value(4))))
   }
-  test("Delete Test") {
-    import setExp.*
-    //val firstExpression = Sub(Add(Add(Value(2), Value(3)),Var("Adan")), Var("x")).eval
+  
+  test("Symmetric Difference Test") {
     println("Running test 2!")
-    Assign(Variable("someSetName"), Insert(Value(1)), Value("somestring")).eval()
-    assert(Check("someSetName", Value(1)))
+    Assign(Variable("someSetName"), SymmetricDifference(Insert(Value(1),Value(2),Value(3)),Insert(Value(2),Value(3),Value(4)))).eval()
+    //println(Variable("someSetName").eval())
+    assert(Check("someSetName", Insert(Value(1),Value(4))))
 
   }
-  test("Set Operations Test") {
-    import setExp.*
-    //val firstExpression = Sub(Add(Add(Value(2), Value(3)),Var("Adan")), Var("x")).eval
+  test("Difference Test") {
     println("Running test 3!")
-    Assign(Variable("someSetName"), Insert(Value(1)), Value("somestring")).eval()
+    Assign(Variable("someSetName"), Difference(Insert(Value(1),Value(2),Value(3)),Insert(Value(2),Value(3),Value(4)))).eval()
     assert(Check("someSetName", Value(1)))
 
   }
-  test("Scopes Test") {
-    import setExp.*
-    //val firstExpression = Sub(Add(Add(Value(2), Value(3)),Var("Adan")), Var("x")).eval
+  test("Intersection Test") {
     println("Running test 4!")
-    Assign(Variable("someSetName"), Insert(Value(1)), Value("3"), Value(5)).eval()
-    Scope("scopename", Scope("othername", Assign(Variable("someSetName"), Insert(Value(2), Value(4)), Value("someotherstring")))).eval()
-
-    assert(Check("someSetName", Value(1)))
-    assert(Check("someSetName", Value("3")))
-    assert(Check("someSetName", Value(5)))
-
-    assert(Check("someSetName", Value(2),Some("othername")))
-    assert(Check("someSetName", Value(4),Some("othername")))
-    assert(Check("someSetName", Value("someotherstring"),Some("othername")))
-
+    Assign(Variable("someSetName"), Intersection(Insert(Value(1),Value(2),Value(3)),Insert(Value(2),Value(3),Value(4)))).eval()
+    assert(Check("someSetName", Insert(Value(2),Value(3))))
 
 
   }
-  test("Macro Test") {
-    import setExp.*
-    //val firstExpression = Sub(Add(Add(Value(2), Value(3)),Var("Adan")), Var("x")).eval
+  test("Union Test") {
     println("Running test 5!")
-    Assign(Variable("someSetName"), Insert(Value(1)), Value("somestring")).eval()
-    assert(Check("someSetName", Value(1)))
-
+    Assign(Variable("someSetName"), Union(Insert(Value(1),Value(2),Value(3)),Insert(Value(2),Value(3),Value(4)))).eval()
+    println(Variable("someSetName").eval())
+    assert(Check("someSetName", Insert(Value(2),Value(3),Value(4),Value(1))))
   }
 
 }
