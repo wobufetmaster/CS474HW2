@@ -21,7 +21,23 @@ class MacroTests extends AnyFunSuite {
   }
 
   test("Macro Test with Scopes") {
-    
+
+    CreateMacro("myMacro",Delete(Variable("mySet"))).eval()
+    Scope("scopename",Scope("othername",Assign(Variable("mySet"),Value("This is the inner scope")))).eval()
+    Scope("scopename",Assign(Variable("mySet"),Value("This is the outer scope"))).eval()
+    Assign(Variable("mySet"),Value("This is the global scope")).eval()
+
+    Scope("scopename",Scope("othername",Macro("myMacro"))).eval()
+    assertThrows[NoSuchElementException](Check("mySet",Value(1),Some("othername")))
+
+    assert(Check("mySet",Value("This is the outer scope"),Some("scopename"))) //The other elements shouldn't be deleted
+    assert(Check("mySet",Value("This is the global scope")))
+
+    Scope("scopename",Macro("myMacro")).eval()
+    assertThrows[NoSuchElementException](Check("mySet",Value(1),Some("scopename")))
+    Macro("myMacro").eval()
+    assertThrows[NoSuchElementException](Check("mySet",Value(1)))
+
 
   }
 }

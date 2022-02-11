@@ -8,6 +8,8 @@ class ScopesTests extends AnyFunSuite {
     Assign(Variable("someSetName"),Insert(Value(1),Value(3),Value(5))).eval()
     Scope("scopename", Assign(Variable("someSetName"), Insert(Value(2),Value(4),Value(6)))).eval()
 
+    println(Variable("someSetName").eval())
+
     assert(Check("someSetName",Insert(Value(1),Value(3),Value(5)))) //Outer scope should be unnafected
     assert(Check("someSetName",Insert(Value(2),Value(4),Value(6)),Some("scopename"))) //Inner scope should have correct values
 
@@ -30,8 +32,13 @@ class ScopesTests extends AnyFunSuite {
     assertThrows[NoSuchElementException](Check("someSetName", Value(1)),Some("othername"))
 
   }
-  test("Advanced Scopes Test") { //Do something with Variable
-    assert(true)
+  test("Stack Walk Through Test") {
+    Assign(Variable("globalSet"),Value("this is the global scope")).eval()
+    Scope("scope1",Assign(Variable("scope1Set"),Value("this is the first scope"))).eval()
+
+    Scope("scope1",Scope("scope2",Assign(Variable("mySetName"),Value("this is the second scope"),Variable("globalSet"),Variable("scope1Set")))).eval()
+
+    assert(Check("mySetName",Insert(Value("this is the first scope"),Value("this is the second scope"),Value("this is the global scope")),Some("scope2")))
 
   }
 
