@@ -5,8 +5,8 @@
 You can install this program from [GitHub](https://github.com/wobufetmaster/CS474HW1). 
 This program is buildable using the sbt. It can be run and built using the commands **sbt clean compile test** and **sbt clean compile run** It is also intelliJ friendly, and can be imported into it 
 easily. 
-
-You must put the import statements: 
+Make sure to include these files in your project, and
+you must put the import statements: 
 ```scala
 import MySetTheoryDSL.*
 import setExp.*
@@ -15,10 +15,11 @@ in your scala program in order to use the set theory DSL provided here.
 
 ##Basic Syntax:
 All expressions need to be evaluated by using the **eval()** method, except for **Check**, which does not require it.
-Every expression evaluates to a **Set()**, except for Check, it returns a Boolean. Because of this check cannot be nested inside of other cases, it must be at the top level. 
+Every expression evaluates to a **Set()**, except for Check, it returns a Boolean. Because of this check is not a **setExp** and cannot be used where one is expected. 
+Therefore it must be at the top level. 
 
 ```scala
-Check(Assign,...) //All good
+Check(Assign(name),...) //All good
 Assign(name, Check(...)) //Compile time error
 ```
 Aside from that, any command that takes a **setExp** as an argument can have any other case of **setExp** used as an argument. Some operations, like **Insert()** and **Assign()** 
@@ -31,9 +32,7 @@ Assign(Variable("mySet"),Macro("myMacro"),Variable("myVariable")).eval() //The m
 assertThrows[NoSuchElementException](Assign(Variable("mySet"),Variable("myVariable"),Macro("myMacro")).eval()) //myVariable gets added to the set before it's instantiated, which fails.
 ```
 
-
 Also note that **Assign()**, **Delete()**, and **CreateMacro()** simply return empty sets. 
-
 
 The type signature of **Check()** is: 
 ```scala
@@ -84,16 +83,31 @@ assertThrows[NoSuchElementException](Variable("someSetName").eval())
 
 **Union(op1: setExp, op2: setExp)**
 Returns the set union between op1 and op2.
-
+```scala
+Assign(Variable("someSetName"), Union(Insert(Value(1),Value(2),Value(3)),Insert(Value(2),Value(3),Value(4)))).eval()
+assert(Check("someSetName", Insert(Value(2),Value(3),Value(4),Value(1))))
+```
 **Intersection(op1: setExp, op2: setExp)**
 Returns the set Intersection between op1 and op2.
+```scala
+Assign(Variable("someSetName"), Intersection(Insert(Value(1),Value(2),Value(3)),Insert(Value(2),Value(3),Value(4)))).eval()
+assert(Check("someSetName", Insert(Value(2),Value(3))))
+```
+
 
 **Difference(op1: setExp, op2: setExp)**
 Returns the set Difference between op1 and op2.
+```scala
+Assign(Variable("someSetName"), Difference(Insert(Value(1),Value(2),Value(3)),Insert(Value(2),Value(3),Value(4)))).eval()
+assert(Check("someSetName", Value(1)))
+```
 
 **SymmetricDifference(op1: setExp, op2: setExp)**
 Returns the symmetric difference between op1 and op2.
-
+```scala
+Assign(Variable("someSetName"), SymmetricDifference(Insert(Value(1),Value(2),Value(3)),Insert(Value(2),Value(3),Value(4)))).eval()
+assert(Check("someSetName", Insert(Value(1),Value(4))))
+```
 **Product(op1: setExp, op2: setExp)**
 Returns the cartesian product between the two sets. 
 for example: 
@@ -105,18 +119,7 @@ Check("ProductSet", NestedInsert(
   Insert(Value(3),Value(2)),
   Insert(Value(3),Value(4))))
 ```
-Note that this is one of the only functions that creates nested sets, along with **NestedInsert**
-##Macros
-There are two operations that are used for macros. 
-**CreateMacro(lhs: String, rhs: setExp)** Binds the name on the lhs to the set expression on the rhs. All macros must be created before they can be used. 
-The macro is not evaluated when it is created. 
-**Macro(m: String)** evaluates the macro with name m, in the current scope.  
-For example: 
-```scala
-CreateMacro("Add 3",Insert(Value(3))).eval()
-Assign(Variable("mySet"),Macro("Add 3")).eval()
-assert(Check("mySet",Value(3)))
-```
+Note that this is one of the two functions that creates nested sets, along with **NestedInsert**
 
 
 ##Scopes:
@@ -143,7 +146,26 @@ By using Scope("scopename") you are pushing "scopename" onto the stack, which is
 is not found in the current scope, we walk up through the stack until we find the first scope that contains the value. Finally, if there is no scope in the stack that matches, 
 we check global (represented by **None**) scope, and if there is no matching value we throw an exception.
 
+##Macros
+There are two operations that are used for macros.
+**CreateMacro(lhs: String, rhs: setExp)** Binds the name on the lhs to the set expression on the rhs. All macros must be created before they can be used.
+The macro is not evaluated when it is created, and what it does depends on the current scope.
+**Macro(m: String)** evaluates the macro with name m, in the current scope.  
+For example:
+```scala
+CreateMacro("Add 3",Insert(Value(3))).eval()
+Assign(Variable("mySet"),Macro("Add 3")).eval()
+assert(Check("mySet",Value(3)))
+```
+Macros are implemented with a **macro_map()** which maps strings to **setExp()** .
+```scala
+macro_map: collection.mutable.Map[String, setExp]
+```
+The value of executing a macro depends on the scope, for example: 
+```scala
+CreateMacro("myMacro",Delete(Variable("mySet"))).eval()
 
+```
 
 
 

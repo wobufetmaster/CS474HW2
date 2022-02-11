@@ -18,7 +18,6 @@ class SetOperationsTests extends AnyFunSuite {
   test("Symmetric Difference Test") {
     println("Running test 2!")
     Assign(Variable("someSetName"), SymmetricDifference(Insert(Value(1),Value(2),Value(3)),Insert(Value(2),Value(3),Value(4)))).eval()
-    //println(Variable("someSetName").eval())
     assert(Check("someSetName", Insert(Value(1),Value(4))))
 
   }
@@ -38,7 +37,6 @@ class SetOperationsTests extends AnyFunSuite {
   test("Union Test") {
     println("Running test 5!")
     Assign(Variable("someSetName"), Union(Insert(Value(1),Value(2),Value(3)),Insert(Value(2),Value(3),Value(4)))).eval()
-    println(Variable("someSetName").eval())
     assert(Check("someSetName", Insert(Value(2),Value(3),Value(4),Value(1))))
   }
 

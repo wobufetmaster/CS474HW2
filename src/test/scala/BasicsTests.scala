@@ -21,7 +21,6 @@ class BasicsTests extends AnyFunSuite {
     assert(!Check("someSetName", Value("somestring")))
     assert(!Check("someSetName", Value(0x0f)))
 
-    //assertThrows[NoSuchElementException](Check("someSetName", Value(Set())))
 
   }
   test("Insert Test") {
@@ -30,7 +29,6 @@ class BasicsTests extends AnyFunSuite {
     assert(Check("someSetName", Insert(Value(1),Value("somestring"))))
 
     Assign(Variable("someOtherSetName"), Insert(Value(3.14), Insert(Insert(Insert(Value("nestedval")))))).eval()
-    //println(Variable("someOtherSetName").eval())
     assert(Check("someOtherSetName", Insert(Value(3.14), Insert(Value("nestedval")))))
   }
 

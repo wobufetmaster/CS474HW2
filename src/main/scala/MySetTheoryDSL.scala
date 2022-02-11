@@ -1,6 +1,8 @@
 import MySetTheoryDSL.setExp.*
 
+
 import scala.collection.mutable
+
 
 object MySetTheoryDSL:
   type BasicType = Any
@@ -9,11 +11,10 @@ object MySetTheoryDSL:
   private val scope_map: collection.mutable.Map[(String,Option[String]), Set[Any]] = collection.mutable.Map()
   private val current_scope: mutable.Stack[String] = new mutable.Stack[String]()
 
-  def get_scope(name: String): Option[String] = 
+  def get_scope(name: String): Option[String] = //Walk up through the scope stack and find the first scope where our name is defined.
     current_scope.find(x => (scope_map get(name, Some(x))).isDefined)
 
   enum setExp:
-
     case Value(input: BasicType)
     case Variable(name: String)
     case Macro(name: String)
@@ -30,12 +31,11 @@ object MySetTheoryDSL:
     case Product(op1: setExp, op2: setExp)
 
 
-
     def eval(): Set[Any] = { //Walks through the AST and returns a set. Set[Any]
       this match {
         case Value(v) => Set(v)
-        case Variable(name) => scope_map(name,get_scope(name))
-        case Macro(a) => macro_map(a).eval()
+        case Variable(name) => scope_map(name,get_scope(name)) //Lookup value
+        case Macro(a) => macro_map(a).eval() //Lookup macro and execute
         case CreateMacro(a,b) =>
           macro_map.update(a,b)
           Set()
@@ -59,7 +59,7 @@ object MySetTheoryDSL:
           val a = op1.eval()
           val b = op2.eval()
           (a &~ b).union(b &~ a)
-        case Product(op1, op2) => //Cartesian Product of two sets
+        case Product(op1, op2) => //The two foldLeft()'s essentially act as a double for loop, so we can combine every element pairwise.
           op1.eval().foldLeft(Set())((left_op1, left_op2) => left_op1 | op2.eval().foldLeft(Set())((right_op1, right_op2) => right_op1 | Set(Set(left_op2) | Set(right_op2))))
       }
     }
